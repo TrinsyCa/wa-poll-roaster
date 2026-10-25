@@ -62,6 +62,16 @@ def click(n):
     user32.SetCursorPos(x, y); user32.mouse_event(2, 0, 0, 0, 0); user32.mouse_event(4, 0, 0, 0, 0)
 
 
+def click_see_all():
+    """Poll details slides in: let it settle, then click "See all (N more)" at its fresh position."""
+    time.sleep(0.9)
+    sa = find(snap(), 'See all (', prefix=True)
+    if not sa:
+        return False
+    click(sa[0]); time.sleep(1.0)
+    return True
+
+
 def wait(fn, timeout=4.0):
     t = time.time()
     while time.time() - t < timeout:
@@ -138,7 +148,23 @@ def run():
     if find(nodes, 'Search contacts', ctype=U.UIA_EditControlTypeId):
         user32.keybd_event(0x1B, 0, 0, 0); user32.keybd_event(0x1B, 0, 2, 0)  # Esc closes the member list
         time.sleep(0.8); nodes = snap()
-    if not find(nodes, 'See all', prefix=True) and not find(nodes, 'Poll results'):
+    # the owner may have switched chats: make sure the group's own chat is the open one
+    sb = find(nodes, 'Search or start a new chat', ctype=U.UIA_EditControlTypeId)
+    list_right = sb[0].r if sb else wr.left + (wr.right - wr.left) // 3
+
+    def group_open(ns):
+        return [n for n in find(ns, 'Vip Erdinç Turizm', prefix=True, ctype=U.UIA_ButtonControlTypeId) if n.t < wr.top + 130 and n.l > list_right]
+
+    if not group_open(nodes):
+        rows = [n for n in find(nodes, 'Vip Erdinç Turizm', prefix=True) if n.t > wr.top + 130 and n.r <= list_right + 20]
+        if not rows:
+            fail('group chat not found in the chat list')
+        click(rows[0]); time.sleep(1.5); nodes = snap()
+        if not group_open(nodes):
+            fail('group chat did not open')
+    if find(nodes, 'See all (', prefix=True):
+        click_see_all()  # the poll summary is open: expand it to every voter
+    elif not find(nodes, 'Poll results'):
         vv = [n for n in find(nodes, 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 100 < n.t < wr.bottom - 80]
         if not vv:
             pin = [n for n in find(nodes, 'Pinned message', prefix=True, ctype=U.UIA_ButtonControlTypeId) if 'AKTİF' in n.name]
@@ -151,11 +177,13 @@ def run():
                 vv = [n for n in find(snap(), 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 60 < (n.t + n.b) / 2 < wr.bottom - 10]
             if not vv:
                 fail('View votes not found')
-        click(vv[0]); time.sleep(1.0)
-        sa = wait(lambda: find(snap(), 'See all', prefix=True), 4)
-        if sa:
-            click(sa[0]); time.sleep(1.0)
-    head = wait(lambda: find(snap(), 'Poll results') or find(snap(), 'Poll details'), 4)
+        click(vv[0])
+        if wait(lambda: find(snap(), 'See all (', prefix=True), 4):
+            click_see_all()
+    # only the full list ("Poll results") has every voter; "Poll details" shows five
+    head = wait(lambda: find(snap(), 'Poll results'), 5)
+    if not head and click_see_all():
+        head = wait(lambda: find(snap(), 'Poll results'), 5)
     if not head:
         fail('poll panel did not open')
     px = (head[0].l + wr.right) // 2
