@@ -53,6 +53,10 @@ deadline. Data is read from WhatsApp Desktop with Windows UI Automation and ship
   vs the saved contact name). `tools/build_data.py` matches by phone, `@username`, exact name, then
   the stored member-search answers in `r_unmatched.json`; `refresh.sh` runs member searches for new
   unmatched voters. A voter matching several members marks all of them `check`.
+- Display names: the member's own profile name when WhatsApp shows one; otherwise the admin's saved
+  contact name cut down to first + last name via `clean_names.json` in the dump folder (the owner's
+  saved names carry notes such as "Adore İşini Yaptırdım", "Benim Gruptan", plates, cars; those
+  must never reach the page). New members without an own name need an entry there too.
 - Group info layout: header click opens it; "View all (N more)" opens the "Search members" dialog;
   a member row click opens a menu with Make admin / **Remove** / Contact info / Verify / Message.
 

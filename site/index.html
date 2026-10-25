@@ -29,7 +29,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);
 .wrap{max-width:640px;margin:0 auto;padding:16px 16px 48px}
 header{padding:4px 0 4px}
 .brand{display:flex;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
-.brand img{width:56px;height:56px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(217,178,95,.35)}
+.brand img{width:56px;height:56px;flex:none}
 .brand b{font-size:20px;letter-spacing:.02em;color:var(--gold);line-height:1.2}
 h1{margin:0 0 6px;font-size:24px;line-height:1.2}
 .lead{margin:0;color:var(--muted)}
@@ -68,10 +68,19 @@ li{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--p
 .empty{color:var(--muted);text-align:center;padding:24px 8px}
 footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
 .closed .how{border-left-color:var(--bad)}
+.alert{background:#c62828;color:#fff;border-radius:var(--radius);padding:14px 16px;margin:0 0 16px;font-size:15px;line-height:1.45}
+.alert b{display:block;font-size:16px;margin-bottom:4px}
+.alert a{display:inline-block;margin-top:10px;background:#fff;color:#b42323;font-weight:700;text-decoration:none;
+  padding:9px 14px;border-radius:999px}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
+  <div class="alert" id="alert" role="alert" hidden>
+    <b>Gruptan çıkarma işlemi başladı.</b>
+    Bir sorun olduğunu düşünüyorsanız lütfen Erdinç İslamoğlu ile iletişime geçin.
+    <br><a href="https://wa.me/905301267153" target="_blank" rel="noopener">WhatsApp'tan yaz</a>
+  </div>
   <header>
     <div class="brand"><img src="logo.webp" alt="" width="56" height="56"><b>VIP Erdinç Turizm</b></div>
     <h1 id="poll">Grupta aktif misin?</h1>
@@ -166,6 +175,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
   function tick() {
     if (!data || !data.closes) { $('left').textContent = '–'; return; }
     const ms = new Date(data.closes) - Date.now();
+    $('alert').hidden = ms > 3.6e6;  // the last hour: removals have started
     if (ms <= 0) {
       document.body.classList.add('closed');
       $('left').textContent = 'Kapandı'; $('leftLabel').textContent = 'Anket';
