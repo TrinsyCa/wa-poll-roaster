@@ -172,7 +172,12 @@ def run():
         sa = wait(lambda: find(snap(), 'See all', prefix=True), 4)
         if sa:
             click(sa[0]); time.sleep(1.0)
-    head = wait(lambda: find(snap(), 'Poll results') or find(snap(), 'Poll details'), 4)
+    # only the full list ("Poll results") has every voter; "Poll details" shows five
+    head = wait(lambda: find(snap(), 'Poll results'), 5)
+    if not head:
+        sa = find(snap(), 'See all', prefix=True)
+        if sa:
+            click(sa[0]); head = wait(lambda: find(snap(), 'Poll results'), 5)
     if not head:
         fail('poll panel did not open')
     px = (head[0].l + wr.right) // 2
