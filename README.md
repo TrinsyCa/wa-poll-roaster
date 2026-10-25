@@ -39,10 +39,7 @@ windows/*.py ───────────► raw dumps in %LOCALAPPDATA%\Te
 tools/build_data.py ─────► site/data.json   (matching voters to members)
    │
    ▼
-tools/publish.sh ────────► commit on develop, merge into main, push
-   │
-   ▼
-GitHub Actions ──────────► scp site/ to the Hostinger subdomain
+tools/publish.sh ────────► publishes the updated site/
 ```
 
 ### Matching voters to members
@@ -70,11 +67,11 @@ guessed.
 site/                 what gets deployed (index.html, data.json, a/*.webp, logo, .htaccess, robots.txt)
 tools/build_data.py   dumps -> site/data.json
 tools/refresh.sh      re-read votes, rebuild, publish (about 20 s of UI time)
-tools/publish.sh      commit data on develop, merge into main, push (deploys)
+tools/loop.sh         run refresh.sh every 15 minutes until the poll closes
+tools/publish.sh      publish the updated data
 tools/collect.sh      full collection: members, contact info, avatars (about an hour)
 tools/env.sh          paths and settings shared by the scripts
 windows/              UI Automation scripts, run with a Windows Python (comtypes + Pillow)
-.github/workflows/    Hostinger deploy
 CLAUDE.md             operating guide for AI agents working on this repo
 ```
 
@@ -88,23 +85,9 @@ do not use the keyboard or mouse: the scripts move the mouse inside WhatsApp.
 ```bash
 tools/collect.sh                 # once: members, contact info, avatars, first data.json
 tools/refresh.sh                 # every ~15 minutes until the poll closes
-NO_PUBLISH=1 tools/refresh.sh    # rebuild locally without deploying
+NO_PUBLISH=1 tools/refresh.sh    # rebuild locally without publishing
 python3 -m http.server -d site 8765   # preview at http://127.0.0.1:8765
 ```
-
-## Deployment
-
-Two branches: work lands on `develop`; `main` only receives `Merge develop: ...` merge commits.
-Every push to `main` runs `.github/workflows/deploy.yml`, which uploads `site/` over SSH. Add
-`[no-deploy]` to a commit message to skip it. Repository secrets:
-
-| Secret | Value |
-| --- | --- |
-| `FTP_SERVER` | Hostinger SSH host |
-| `SSH_USERNAME` | Hostinger SSH user |
-| `SSH_PORT` | Hostinger SSH port |
-| `SSH_PRIVATE_KEY` | private key authorised on the Hostinger account |
-| `FTP_PATH` | document root of `viperdinc.cooltravelistanbul.com` on the server |
 
 ## Privacy
 
