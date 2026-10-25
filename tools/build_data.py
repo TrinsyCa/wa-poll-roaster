@@ -66,6 +66,9 @@ def main():
     vp = [parse(v) for v in voters]
     by_phone, by_handle, by_key = {}, {}, {}
     for i, p in enumerate(mp):
+        prof_push = (profiles.get(members[i]['name']) or {}).get('push') or ''
+        if prof_push.startswith('@'):  # Contact info shows the username under the saved name
+            p['handles'] = p['handles'] | {prof_push.lower()}
         prof_phone = (profiles.get(members[i]['name']) or {}).get('phone')
         if prof_phone:  # numbers read from Contact info cover the saved contacts too
             p['phones'] = p['phones'] | {digits(prof_phone)}
@@ -75,7 +78,7 @@ def main():
     row_index = {m['name']: i for i, m in enumerate(members)}
 
     voted, ambiguous, push_from_poll, phone_from_poll = set(), set(), {}, {}
-    unresolved = []
+    unresolved, gone = [], []
     for v, p in zip(voters, vp):
         hits = set()
         for d in p['phones']: hits |= by_phone.get(d, set())
@@ -90,6 +93,8 @@ def main():
             hits = {row_index[r] for r in rows if r in row_index}
             if not rows and q not in search:
                 unresolved.append(q)
+            elif not rows:
+                gone.append(p)  # voted, then left the group: still listed as a voter
         if len(hits) == 1:
             i = next(iter(hits))
             voted.add(i)
@@ -106,6 +111,8 @@ def main():
         push = prof.get('push') or (p['name'] if p['is_push'] else None) or push_from_poll.get(i)
         if push and not any(c.isalnum() for c in push):
             push = None  # an emoji-only profile name cannot be searched; use the saved name instead
+        if push and push.startswith('@'):
+            push = (push_from_poll.get(i) if not (push_from_poll.get(i) or '').startswith('@') else None) or clean.get(m['name']) or push
         handle = next(iter(HANDLE.findall(m['name'])), '')
         phone = prof.get('phone') or p['phone_text'] or phone_from_poll.get(i, '')
         status = 'voted' if i in voted else ('check' if i in ambiguous else 'not_voted')
@@ -119,12 +126,15 @@ def main():
             'status': status,
             'admin': admin or you,
         })
+    for k, p in enumerate(gone):
+        out.append({'id': len(members) + k, 'name': p['name'], 'own': True, 'phone': p['phone_text'],
+                    'photo': None, 'status': 'voted', 'admin': False, 'left': True})
     data = {
         'updated': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'closes': closes,
         'poll': 'GRUPTA AKTİF MİSİN?',
         'group': 'Vip Erdinç Turizm',
-        'total': len(out),
+        'total': sum(1 for x in out if not x.get('left')),  # group size; departed voters are listed but not counted
         'voted': sum(1 for x in out if x['status'] == 'voted'),
         'members': sorted(out, key=lambda x: (x['name'][:1] in '+@', norm(x['name']))),  # bare numbers and handles last
     }
