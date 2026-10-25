@@ -86,9 +86,53 @@ def bring_front():
     return fg_ok()
 
 
+class LASTINPUTINFO(ctypes.Structure):
+    _fields_ = [('cbSize', ctypes.c_uint), ('dwTime', ctypes.c_uint)]
+
+
+def idle_seconds():
+    li = LASTINPUTINFO(); li.cbSize = ctypes.sizeof(li)
+    user32.GetLastInputInfo(ctypes.byref(li))
+    return (ctypes.windll.kernel32.GetTickCount() - li.dwTime) / 1000.0
+
+
+def wait_for_idle(need=20, max_wait=600):
+    """The owner works on this machine: start only after `need` seconds without keyboard/mouse input."""
+    t = time.time()
+    while idle_seconds() < need:
+        if time.time() - t > max_wait:
+            print(f'owner active for {max_wait}s, round skipped'); sys.exit(5)
+        time.sleep(5)
+
+
+def fail(msg):
+    try:
+        from PIL import ImageGrab
+        ImageGrab.grab(all_screens=True).save(os.path.join(os.path.dirname(out_path), 'refresh_fail.png'))
+    except Exception:
+        pass
+    print(msg); sys.exit(2)
+
+
 def main():
+    wait_for_idle()
+    prev_fg = user32.GetForegroundWindow()
+    was_min = bool(user32.IsIconic(HWND))
+    try:
+        run()
+    finally:
+        # hand the screen back the way it was
+        if was_min:
+            user32.ShowWindow(HWND, 6)
+        if prev_fg and prev_fg != HWND:
+            user32.keybd_event(0x12, 0, 0, 0); user32.keybd_event(0x12, 0, 2, 0)
+            user32.SetForegroundWindow(prev_fg)
+
+
+def run():
     if not bring_front():
         print('WhatsApp is not in front, giving up'); sys.exit(2)
+    time.sleep(0.6)
     wr = win.CurrentBoundingRectangle
     nodes = snap()
     if find(nodes, 'Search contacts', ctype=U.UIA_EditControlTypeId):
@@ -99,18 +143,21 @@ def main():
         if not vv:
             pin = [n for n in find(nodes, 'Pinned message', prefix=True, ctype=U.UIA_ButtonControlTypeId) if 'AKTİF' in n.name]
             if not pin:
-                print('pinned poll banner not found'); sys.exit(2)
+                fail('pinned poll banner not found')
             click(pin[0]); time.sleep(1.2)
             vv = wait(lambda: [n for n in find(snap(), 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 100 < n.t < wr.bottom - 80], 4)
             if not vv:
-                print('View votes not found'); sys.exit(2)
+                # the poll may sit near an edge of the chat: accept any on-screen "View votes"
+                vv = [n for n in find(snap(), 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 60 < (n.t + n.b) / 2 < wr.bottom - 10]
+            if not vv:
+                fail('View votes not found')
         click(vv[0]); time.sleep(1.0)
         sa = wait(lambda: find(snap(), 'See all', prefix=True), 4)
         if sa:
             click(sa[0]); time.sleep(1.0)
     head = wait(lambda: find(snap(), 'Poll results') or find(snap(), 'Poll details'), 4)
     if not head:
-        print('poll panel did not open'); sys.exit(2)
+        fail('poll panel did not open')
     px = (head[0].l + wr.right) // 2
     total = None
     for n in snap():

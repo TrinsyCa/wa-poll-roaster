@@ -6,7 +6,7 @@ Options -Indexes
   <FilesMatch "^(index\.html|data\.json)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
-  <FilesMatch "\.(webp|png)$">
+  <FilesMatch "\.(webp|png|jpe?g)$">
     Header set Cache-Control "public, max-age=86400"
   </FilesMatch>
 </IfModule>
