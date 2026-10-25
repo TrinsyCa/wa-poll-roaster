@@ -82,8 +82,9 @@ in both color schemes before shipping.
   without leaving develop, `git merge-tree --write-tree origin/main develop` + `git commit-tree`
   (that is what `tools/publish.sh` does). Pushing `main` deploys via `.github/workflows/deploy.yml`.
 - `[no-deploy]` in the head commit message skips the deploy.
-- Ship code changes only when the owner asks. `tools/publish.sh` (data only) is pre-approved while
-  the poll is open, because keeping statuses current is the point of the site.
+- Ship code changes only when the owner asks. Refreshing the list is also on request only: run
+  `tools/refresh.sh` (which publishes) when the owner says "listeyi al"; do not run `tools/loop.sh`
+  unless the owner asks for automatic refreshes again (owner, 2026-10-25).
 - There is no `gh` CLI on this machine. Watch a deploy by fetching
   `https://viperdinc.cooltravelistanbul.com/data.json` and comparing `updated`.
 
