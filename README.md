@@ -64,7 +64,7 @@ guessed.
 ## Repository layout
 
 ```
-site/                 what gets deployed (index.html, data.json, a/*.webp, logo, .htaccess, robots.txt)
+site/                 the published page (index.html, data.json, a/*.webp, logo, .htaccess, robots.txt)
 tools/build_data.py   dumps -> site/data.json
 tools/refresh.sh      re-read votes, rebuild, publish (about 20 s of UI time)
 tools/loop.sh         run refresh.sh every 15 minutes until the poll closes
