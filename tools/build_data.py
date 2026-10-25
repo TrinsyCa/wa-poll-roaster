@@ -126,9 +126,7 @@ def main():
             'status': status,
             'admin': admin or you,
         })
-    for k, p in enumerate(gone):
-        out.append({'id': len(members) + k, 'name': p['name'], 'own': True, 'phone': p['phone_text'],
-                    'photo': None, 'status': 'voted', 'admin': False, 'left': True})
+    # voters who have left the group (in `gone`) are not listed (owner, 2026-10-25)
     data = {
         'updated': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'closes': closes,
