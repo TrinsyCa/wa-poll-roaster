@@ -1,0 +1,49 @@
+name: Deploy to Hostinger
+
+# main only receives "Merge develop: ..." commits (see CLAUDE.md). Every push to main uploads
+# site/ to the subdomain's document root over SSH. Put [no-deploy] in the commit message to skip.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Data refreshes can land every few minutes: a newer push replaces a deploy still in flight.
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Upload site/
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[no-deploy]')"
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check the site before shipping
+        run: |
+          python3 -c "import json; d=json.load(open('site/data.json')); assert d['total'] == len(d['members']) > 0, 'data.json is empty or inconsistent'; print(d['voted'], '/', d['total'], 'voted')"
+          test -f site/index.html
+
+      # source "site" + strip_components 1 uploads the folder's contents, dotfiles (.htaccess) included
+      - name: Upload to the subdomain
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "site"
+          strip_components: 1
+          target: ${{ secrets.FTP_PATH }}
+          overwrite: true
+
+      - name: Check the live site
+        run: |
+          sleep 5
+          curl -fsS -o /dev/null -w "index.html %{http_code}\n" "https://viperdinc.cooltravelistanbul.com/?ci=${GITHUB_SHA}"
+          curl -fsS "https://viperdinc.cooltravelistanbul.com/data.json?ci=${GITHUB_SHA}" | python3 -c "import json,sys; d=json.load(sys.stdin); print('live data:', d['voted'], '/', d['total'], 'updated', d['updated'])"

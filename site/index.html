@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>VIP Erdinç Turizm</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0d0d0f">
+<style>
+:root{
+  --bg:#0d0d0f; --panel:#17171b; --line:#26262c; --text:#f2f2f4; --muted:#9a9aa5;
+  --gold:#d9b25f; --gold-ink:#1a1407; --ok:#3ecf8e; --ok-bg:rgba(62,207,142,.12);
+  --bad:#ff6b6b; --bad-bg:rgba(255,107,107,.12); --warn:#f5b942; --warn-bg:rgba(245,185,66,.13);
+  --radius:14px;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f6f5f2; --panel:#ffffff; --line:#e6e3dc; --text:#17171b; --muted:#6d6a63;
+    --gold:#a77b1f; --gold-ink:#fff; --ok:#14935b; --ok-bg:#e6f6ee; --bad:#d23b3b; --bad-bg:#fdecec;
+    --warn:#a86a00; --warn-bg:#fdf3df; }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 48px}
+header{padding:4px 0 4px}
+.brand{display:flex;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.brand img{width:56px;height:56px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(217,178,95,.35)}
+.brand b{font-size:20px;letter-spacing:.02em;color:var(--gold);line-height:1.2}
+h1{margin:0 0 6px;font-size:24px;line-height:1.2}
+.lead{margin:0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:13px}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+.how{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:var(--radius);padding:12px 14px;margin:0 0 16px;font-size:14px}
+.how strong{color:var(--gold)}
+.search{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px}
+.search input{width:100%;font-size:17px;padding:14px 16px;border-radius:var(--radius);
+  border:1px solid var(--line);background:var(--panel);color:var(--text);outline:none}
+.search input:focus{border-color:var(--gold)}
+.chips{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
+.chips button{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.count{color:var(--muted);font-size:13px;margin:4px 2px 8px}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px}
+.av{flex:none;width:40px;height:40px;border-radius:50%;background:var(--line);object-fit:cover;
+  display:grid;place-items:center;font-weight:700;color:var(--muted);font-size:15px;overflow:hidden}
+.who{min-width:0;flex:1}
+.nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.tag{flex:none;font-size:12px;font-weight:700;padding:5px 9px;border-radius:999px;white-space:nowrap}
+.tag.voted{color:var(--ok);background:var(--ok-bg)}
+.tag.not_voted{color:var(--bad);background:var(--bad-bg)}
+.tag.check{color:var(--warn);background:var(--warn-bg)}
+.more{display:block;width:100%;padding:12px;border-radius:var(--radius);border:1px dashed var(--line);
+  background:transparent;color:var(--muted);font:inherit;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
+.closed .how{border-left-color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <div class="brand"><img src="logo.webp" alt="" width="56" height="56"><b>VIP Erdinç Turizm</b></div>
+    <h1 id="poll">Grupta aktif misin?</h1>
+    <p class="lead">Anket kapandığında oy vermeyenler gruptan çıkarılacak. Adını veya telefon numaranı yazıp durumuna bak.</p>
+  </header>
+
+  <section class="stats" aria-label="Anket durumu">
+    <div class="stat"><b id="left">–</b><span id="leftLabel">Anketin kapanmasına</span></div>
+    <div class="stat"><b id="ratio">–</b><span>oy verdi</span><div class="bar"><i id="barFill"></i></div></div>
+  </section>
+
+  <div class="how" id="how"><strong>Oy vermediysen:</strong> WhatsApp'ta <b>VIP Erdinç Turizm</b> grubunu aç, en üstte sabitlenmiş <b>"GRUPTA AKTİF MİSİN?"</b> anketinde <b>EVET</b>'e bas. Durumun birkaç dakika içinde burada "Oy verdi" olur.</div>
+
+  <div class="search">
+    <input id="q" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false"
+           placeholder="Adın veya numaran (ör. 05XX XXX XX XX)" aria-label="Ad veya telefon numarası ile ara">
+    <div class="chips" role="group" aria-label="Filtre">
+      <button data-f="all" aria-pressed="true">Hepsi</button>
+      <button data-f="not_voted" aria-pressed="false">Oy vermedi</button>
+      <button data-f="voted" aria-pressed="false">Oy verdi</button>
+    </div>
+  </div>
+
+  <div class="count" id="count"></div>
+  <ul id="list"></ul>
+  <button class="more" id="more" hidden>Daha fazla göster</button>
+  <p class="empty" id="empty" hidden>Sonuç yok. Numaranı başında 0 olmadan, ya da adının bir kısmını yazmayı dene.</p>
+
+  <footer id="updated"></footer>
+</div>
+
+<script>
+(() => {
+  const PAGE = 60;
+  const LABEL = { voted: 'Oy verdi', not_voted: 'Oy vermedi', check: 'Kontrol ediliyor' };
+  const $ = id => document.getElementById(id);
+  let data = null, filter = 'all', shown = PAGE, sig = '';
+
+  // Turkish-aware folding: "Şükrü", "sukru", "ŞÜKRÜ" and fancy-font names all compare equal.
+  const fold = s => (s || '').normalize('NFKC').toLocaleLowerCase('tr')
+    .replace(/ı/g, 'i').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const digits = s => (s || '').replace(/\D/g, '');
+  // Compare national numbers: drop a leading 90 / 0 so "+90 535...", "0535..." and "535..." all match.
+  const national = d => d.replace(/^90(?=\d{10}$)/, '').replace(/^0(?=\d{10}$)/, '');
+
+  function prepare(d) {
+    for (const m of d.members) { m._n = fold(m.name); m._d = national(digits(m.phone)); }
+    return d;
+  }
+
+  function matches(m, q) {
+    if (!q) return true;
+    const qd = digits(q);
+    if (qd.length >= 4 && qd.length >= q.replace(/\s/g, '').length - 1) {
+      return m._d.includes(national(qd));
+    }
+    const qf = fold(q);
+    return qf.split(' ').every(w => m._n.includes(w));
+  }
+
+  function avatar(m) {
+    if (m.photo) {
+      const img = document.createElement('img');
+      img.className = 'av'; img.src = m.photo; img.alt = ''; img.loading = 'lazy'; img.width = 40; img.height = 40;
+      return img;
+    }
+    const d = document.createElement('div');
+    d.className = 'av'; d.textContent = (m._n.match(/[a-z0-9]/) || ['?'])[0].toUpperCase();
+    return d;
+  }
+
+  function render() {
+    const q = $('q').value.trim();
+    const rows = data.members.filter(m => (filter === 'all' || m.status === filter) && matches(m, q));
+    const list = $('list');
+    list.replaceChildren(...rows.slice(0, shown).map(m => {
+      const li = document.createElement('li');
+      const who = document.createElement('div'); who.className = 'who';
+      const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = m.name;
+      const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = m.phone && m.phone !== m.name ? m.phone : '';
+      who.append(nm, ph);
+      const tag = document.createElement('span'); tag.className = 'tag ' + m.status;
+      tag.textContent = m.admin ? 'Yönetici' : LABEL[m.status];
+      li.append(avatar(m), who, tag);
+      return li;
+    }));
+    $('count').textContent = q || filter !== 'all' ? `${rows.length} kişi` : `${rows.length} üye`;
+    $('more').hidden = rows.length <= shown;
+    $('empty').hidden = rows.length > 0;
+  }
+
+  function tick() {
+    if (!data || !data.closes) { $('left').textContent = '–'; return; }
+    const ms = new Date(data.closes) - Date.now();
+    if (ms <= 0) {
+      document.body.classList.add('closed');
+      $('left').textContent = 'Kapandı'; $('leftLabel').textContent = 'Anket';
+      return;
+    }
+    const h = Math.floor(ms / 3.6e6), m = Math.floor(ms % 3.6e6 / 6e4), s = Math.floor(ms % 6e4 / 1e3);
+    $('left').textContent = h > 0 ? `${h} sa ${m} dk` : `${m} dk ${String(s).padStart(2, '0')} sn`;
+  }
+
+  function header() {
+    $('poll').textContent = data.poll.charAt(0) + data.poll.slice(1).toLocaleLowerCase('tr');
+    $('ratio').textContent = `${data.voted} / ${data.total}`;
+    $('barFill').style.width = (100 * data.voted / data.total).toFixed(1) + '%';
+    const t = new Date(data.updated);
+    $('updated').textContent = 'Son güncelleme: ' + t.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) +
+      ' · liste kendiliğinden yenilenir';
+  }
+
+  async function load() {
+    try {
+      const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.updated === sig) return;
+      sig = d.updated; data = prepare(d); header(); render(); tick();
+    } catch (e) { /* keep the last good list on a network hiccup */ }
+  }
+
+  $('q').addEventListener('input', () => { shown = PAGE; render(); });
+  $('more').addEventListener('click', () => { shown += PAGE; render(); });
+  document.querySelectorAll('.chips button').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f; shown = PAGE;
+    document.querySelectorAll('.chips button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    render();
+  }));
+  load(); setInterval(load, 60000); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

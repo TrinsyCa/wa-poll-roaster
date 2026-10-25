@@ -1,0 +1,12 @@
+Options -Indexes
+<IfModule mod_headers.c>
+  # A roster of phone numbers: keep it out of search engines and referrer logs.
+  Header set X-Robots-Tag "noindex, nofollow, noarchive"
+  Header set Referrer-Policy "no-referrer"
+  <FilesMatch "^(index\.html|data\.json)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(webp|png)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
