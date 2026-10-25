@@ -138,7 +138,24 @@ def run():
     if find(nodes, 'Search contacts', ctype=U.UIA_EditControlTypeId):
         user32.keybd_event(0x1B, 0, 0, 0); user32.keybd_event(0x1B, 0, 2, 0)  # Esc closes the member list
         time.sleep(0.8); nodes = snap()
-    if not find(nodes, 'See all', prefix=True) and not find(nodes, 'Poll results'):
+    # the owner may have switched chats: make sure the group's own chat is the open one
+    sb = find(nodes, 'Search or start a new chat', ctype=U.UIA_EditControlTypeId)
+    list_right = sb[0].r if sb else wr.left + (wr.right - wr.left) // 3
+
+    def group_open(ns):
+        return [n for n in find(ns, 'Vip Erdinç Turizm', prefix=True, ctype=U.UIA_ButtonControlTypeId) if n.t < wr.top + 130 and n.l > list_right]
+
+    if not group_open(nodes):
+        rows = [n for n in find(nodes, 'Vip Erdinç Turizm', prefix=True) if n.t > wr.top + 130 and n.r <= list_right + 20]
+        if not rows:
+            fail('group chat not found in the chat list')
+        click(rows[0]); time.sleep(1.5); nodes = snap()
+        if not group_open(nodes):
+            fail('group chat did not open')
+    sa = find(nodes, 'See all', prefix=True)
+    if sa:
+        click(sa[0]); time.sleep(1.0)  # the poll summary is open: expand it to every voter
+    elif not find(nodes, 'Poll results'):
         vv = [n for n in find(nodes, 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 100 < n.t < wr.bottom - 80]
         if not vv:
             pin = [n for n in find(nodes, 'Pinned message', prefix=True, ctype=U.UIA_ButtonControlTypeId) if 'AKTİF' in n.name]
