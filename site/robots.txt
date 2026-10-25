@@ -1,2 +1,12 @@
+# Link-preview fetchers may read the page (for the WhatsApp/Telegram preview); search engines may not.
+User-agent: WhatsApp
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
 User-agent: *
 Disallow: /
