@@ -8,6 +8,7 @@ Inputs in <dump dir>:
   r_unmatched.json   member-search results for voters the lists could not match (query -> rows)
   profiles.json      optional, per member row: {"push": ..., "phone": ...} read from Contact info
   photos.json        optional, per member row: "a/<hash>.webp" (or null for the default avatar)
+  clean_names.json   optional, per member row: the saved contact name cut down to first + last name
 """
 import json, os, re, sys, unicodedata
 from datetime import datetime, timezone
@@ -58,6 +59,8 @@ def main():
     search = json.load(open(os.path.join(dump, 'r_unmatched.json'), encoding='utf-8')) if os.path.exists(os.path.join(dump, 'r_unmatched.json')) else {}
     profiles = json.load(open(os.path.join(dump, 'profiles.json'), encoding='utf-8')) if os.path.exists(os.path.join(dump, 'profiles.json')) else {}
     photos = json.load(open(os.path.join(dump, 'photos.json'), encoding='utf-8')) if os.path.exists(os.path.join(dump, 'photos.json')) else {}
+    # saved contact names trimmed to first + last name (the admin's notes like "Adore İşini Yaptırdım" removed)
+    clean = json.load(open(os.path.join(dump, 'clean_names.json'), encoding='utf-8')) if os.path.exists(os.path.join(dump, 'clean_names.json')) else {}
 
     mp = [parse(m) for m in members]
     vp = [parse(v) for v in voters]
@@ -109,7 +112,7 @@ def main():
         out.append({
             'id': i,
             # profile's own name, else the saved contact name, else just the number
-            'name': push or re.sub(r'\s*Group admin.*$', '', p['name']) or handle or INVISIBLE.sub('', phone),
+            'name': push or clean.get(m['name']) or re.sub(r'\s*Group admin.*$', '', p['name']) or handle or INVISIBLE.sub('', phone),
             'own': bool(push),            # False: the name is still the admin's saved contact name
             'phone': INVISIBLE.sub('', phone),
             'photo': photos.get(m['name']) or prof.get('photo'),
