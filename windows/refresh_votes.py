@@ -62,6 +62,16 @@ def click(n):
     user32.SetCursorPos(x, y); user32.mouse_event(2, 0, 0, 0, 0); user32.mouse_event(4, 0, 0, 0, 0)
 
 
+def click_see_all():
+    """Poll details slides in: let it settle, then click "See all (N more)" at its fresh position."""
+    time.sleep(0.9)
+    sa = find(snap(), 'See all (', prefix=True)
+    if not sa:
+        return False
+    click(sa[0]); time.sleep(1.0)
+    return True
+
+
 def wait(fn, timeout=4.0):
     t = time.time()
     while time.time() - t < timeout:
@@ -152,9 +162,8 @@ def run():
         click(rows[0]); time.sleep(1.5); nodes = snap()
         if not group_open(nodes):
             fail('group chat did not open')
-    sa = find(nodes, 'See all', prefix=True)
-    if sa:
-        click(sa[0]); time.sleep(1.0)  # the poll summary is open: expand it to every voter
+    if find(nodes, 'See all (', prefix=True):
+        click_see_all()  # the poll summary is open: expand it to every voter
     elif not find(nodes, 'Poll results'):
         vv = [n for n in find(nodes, 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 100 < n.t < wr.bottom - 80]
         if not vv:
@@ -168,16 +177,13 @@ def run():
                 vv = [n for n in find(snap(), 'View votes', ctype=U.UIA_ButtonControlTypeId) if wr.top + 60 < (n.t + n.b) / 2 < wr.bottom - 10]
             if not vv:
                 fail('View votes not found')
-        click(vv[0]); time.sleep(1.0)
-        sa = wait(lambda: find(snap(), 'See all', prefix=True), 4)
-        if sa:
-            click(sa[0]); time.sleep(1.0)
+        click(vv[0])
+        if wait(lambda: find(snap(), 'See all (', prefix=True), 4):
+            click_see_all()
     # only the full list ("Poll results") has every voter; "Poll details" shows five
     head = wait(lambda: find(snap(), 'Poll results'), 5)
-    if not head:
-        sa = find(snap(), 'See all', prefix=True)
-        if sa:
-            click(sa[0]); head = wait(lambda: find(snap(), 'Poll results'), 5)
+    if not head and click_see_all():
+        head = wait(lambda: find(snap(), 'Poll results'), 5)
     if not head:
         fail('poll panel did not open')
     px = (head[0].l + wr.right) // 2

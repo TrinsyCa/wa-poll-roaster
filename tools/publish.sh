@@ -12,7 +12,7 @@ if ! git diff --quiet HEAD -- site/a || [ -n "$(git ls-files --others --exclude-
 if [ "$(git show HEAD:site/data.json 2>/dev/null | strip)" != "$(strip < site/data.json)" ]; then changed=1; fi
 [ "$changed" = 1 ] || { echo "no vote changes, nothing to publish"; exit 0; }
 
-voted=$(python3 -c 'import json; d=json.load(open("site/data.json")); print(f"{d[\"voted\"]}/{d[\"total\"]}")')
+voted=$(python3 -c 'import json; d=json.load(open("site/data.json")); print("%d/%d" % (d["voted"], d["total"]))')
 stamp=$(date +%H:%M)
 git add site/data.json site/a
 git commit -q -m "chore(data): oy durumu $voted ($stamp)" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
