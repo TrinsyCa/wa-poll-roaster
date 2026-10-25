@@ -69,7 +69,19 @@ li{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--p
 footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
 .closed .how{border-left-color:var(--bad)}
 .alert{background:#c62828;color:#fff;border-radius:var(--radius);padding:14px 16px;margin:0 0 16px;font-size:15px;line-height:1.45}
+.alert{display:flex;gap:14px;align-items:flex-start}
 .alert b{display:block;font-size:16px;margin-bottom:4px}
+/* hourglass: sand runs down, then the glass flips; the flipped end state equals the start state */
+.hg{flex:none;width:42px;height:58px;animation:hg-flip 3.2s cubic-bezier(.65,0,.35,1) infinite;filter:drop-shadow(0 0 6px rgba(255,210,122,.55))}
+.hg .top{transform-box:fill-box;transform-origin:50% 100%;animation:hg-top 3.2s linear infinite}
+.hg .bot{transform-box:fill-box;transform-origin:50% 100%;animation:hg-bot 3.2s linear infinite}
+.hg .flow{stroke-dasharray:3 3;animation:hg-flow .35s linear infinite,hg-flow-on 3.2s linear infinite}
+@keyframes hg-flip{0%,82%{transform:rotate(0)}100%{transform:rotate(180deg)}}
+@keyframes hg-top{0%{transform:scaleY(1)}80%,100%{transform:scaleY(0)}}
+@keyframes hg-bot{0%{transform:scaleY(0)}80%,100%{transform:scaleY(1)}}
+@keyframes hg-flow{to{stroke-dashoffset:-6}}
+@keyframes hg-flow-on{0%,78%{opacity:1}80%,100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.hg,.hg .top,.hg .bot,.hg .flow{animation:none}}
 .alert a{display:inline-block;margin-top:10px;background:#fff;color:#b42323;font-weight:700;text-decoration:none;
   padding:9px 14px;border-radius:999px}
 </style>
@@ -77,9 +89,23 @@ footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
 <body>
 <div class="wrap" id="app">
   <div class="alert" id="alert" role="alert" hidden>
-    <b>Gruptan çıkarma işlemi başladı.</b>
-    Bir sorun olduğunu düşünüyorsanız lütfen Erdinç İslamoğlu ile iletişime geçin.
-    <br><a href="https://wa.me/905301267153" target="_blank" rel="noopener">WhatsApp'tan yaz</a>
+    <svg class="hg" viewBox="0 0 40 56" aria-hidden="true">
+      <defs>
+        <clipPath id="hgTop"><path d="M11 7H29C29 19 21.5 23 20 27.5C18.5 23 11 19 11 7Z"/></clipPath>
+        <clipPath id="hgBot"><path d="M20 28.5C21.5 33 29 37 29 49H11C11 37 18.5 33 20 28.5Z"/></clipPath>
+      </defs>
+      <path d="M10 6C10 20 18 24 18 28C18 32 10 36 10 50H30C30 36 22 32 22 28C22 24 30 20 30 6Z" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+      <g clip-path="url(#hgTop)"><rect class="top" x="10" y="12" width="20" height="16" fill="#ffd27a"/></g>
+      <g clip-path="url(#hgBot)"><rect class="bot" x="10" y="35" width="20" height="15" fill="#ffd27a"/></g>
+      <line class="flow" x1="20" y1="27" x2="20" y2="48" stroke="#ffd27a" stroke-width="1.6"/>
+      <rect x="6" y="2.5" width="28" height="3.5" rx="1.75" fill="#fff"/>
+      <rect x="6" y="50" width="28" height="3.5" rx="1.75" fill="#fff"/>
+    </svg>
+    <div>
+      <b>Gruptan çıkarma işlemi başladı.</b>
+      Bir sorun olduğunu düşünüyorsanız lütfen Erdinç İslamoğlu ile iletişime geçin.
+      <br><a href="https://wa.me/905301267153" target="_blank" rel="noopener">WhatsApp'tan yaz</a>
+    </div>
   </div>
   <header>
     <div class="brand"><img src="logo.webp" alt="" width="56" height="56"><b>VIP Erdinç Turizm</b></div>
