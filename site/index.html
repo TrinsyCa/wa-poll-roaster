@@ -106,7 +106,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
 </head>
 <body>
 <div class="wrap" id="app">
-  <div class="alert" id="alert" role="alert" hidden>
+  <div class="alert" id="alert" role="alert">
     <svg class="hg" viewBox="0 0 40 56" aria-hidden="true">
       <defs>
         <clipPath id="hgTop"><path d="M11 7H29C29 19 21.5 23 20 27.5C18.5 23 11 19 11 7Z"/></clipPath>
@@ -219,7 +219,6 @@ footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
   function tick() {
     if (!data || !data.closes) { $('left').textContent = '–'; return; }
     const ms = new Date(data.closes) - Date.now();
-    $('alert').hidden = ms > 3.6e6;  // the last hour: removals are about to start
     if (ms <= 0) {
       document.body.classList.add('closed');
       $('left').textContent = 'Kapandı'; $('leftLabel').textContent = 'Anket';
